@@ -11,8 +11,8 @@
 #include <DHTesp.h>
 
 // Replace with your network credentials
-const char* ssid = "Infinix NOTE 8";
-const char* password = "tampanDanBerani666";
+const char* ssid = "Tofa empire";
+const char* password = "naikdaun12345";
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -27,12 +27,36 @@ JSONVar readings;
 unsigned long lastTime = 0;
 unsigned long timerDelay = 500;
 
+#define LEFT_BUTTON 21
+#define RIGHT_BUTTON 19
+int steer = 0;
+
 // Create a sensor object
 DHTesp dhtSensor;
   
 // Init DHT
 void initDHT(){
-  dhtSensor.setup(15, DHTesp::DHT22); // DHT22 connected to GPIO 4
+  dhtSensor.setup(4, DHTesp::DHT22); // DHT22 connected to GPIO 4
+}
+
+void initButtons() {
+  pinMode(LEFT_BUTTON, INPUT_PULLUP);
+  pinMode(RIGHT_BUTTON, INPUT_PULLUP);
+}
+
+int steeringButton() {
+  if ((millis() - lastTime) > timerDelay) {
+    if (digitalRead(LEFT_BUTTON) == LOW) {
+      steer--;
+    }
+    if (digitalRead(RIGHT_BUTTON) == LOW)
+    {
+      steer++;
+    }
+    
+    lastTime = millis();
+  }
+  return steer;
 }
 
 // Get Sensor Readings and return JSON object
@@ -40,7 +64,8 @@ String getSensorReadings(){
   TempAndHumidity  data = dhtSensor.getTempAndHumidity();
   readings["temperature"] = String(data.temperature, 2);
   readings["humidity"] =  String(data.humidity, 1);
-  readings["potensio"] = String(analogRead(35));
+  readings["potensio"] = String(analogRead(34));
+  readings["steer"] = String(steeringButton());
   String jsonString = JSON.stringify(readings);
   Serial.print(jsonString);
   return jsonString;
@@ -70,6 +95,7 @@ void setup() {
   // Serial port for debugging purposes
   Serial.begin(115200);
   initDHT();
+  initButtons();
   initWiFi();
   initSPIFFS();
 
